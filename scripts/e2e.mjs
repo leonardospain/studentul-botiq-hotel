@@ -16,6 +16,8 @@ const browser = await chromium.launch();
 const errors = [];
 const mk = async (opts = {}) => {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 }, ...opts });
+  // NO_WASM=1 simula las páginas de claude.ai, donde WebAssembly no existe.
+  if (process.env.NO_WASM) await ctx.addInitScript(() => { delete globalThis.WebAssembly; });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => m.type() === 'error' && !/401|409|404|422/.test(m.text()) && errors.push(m.text()));
