@@ -46,7 +46,7 @@ Un usuario es global; su rol vive en `memberships` por hotel (un mismo usuario p
 
 ## 4. Verificado (tests contra PostgreSQL 16)
 
-37 pruebas pasan (`npm test`): aislamiento por API y por RLS, escritura cruzada bloqueada por RLS y FK, auditoría inmutable, rol de BD sin superusuario, pagos reales bloqueados, permisos por rol, límites de plan, cálculo de tarifas por temporada, disponibilidad, **12 reservas concurrentes sobre 3 suites → exactamente 3 éxitos**, cambio de fechas, cancelación, check-in/out con reglas (limpieza, saldo, fecha), pagos y reembolsos simulados, extras, informes.
+48 pruebas de API (`npm test`) + 25 de navegador (`node scripts/e2e.mjs`) + 9 de humo (`scripts/remote-smoke.mjs`). Las 48 incluyen: aislamiento por API y por RLS, escritura cruzada bloqueada por RLS y FK, auditoría inmutable, rol de BD sin superusuario, pagos reales bloqueados, permisos por rol, límites de plan, cálculo de tarifas por temporada, disponibilidad, **12 reservas concurrentes sobre 3 suites → exactamente 3 éxitos**, cambio de fechas, cancelación, check-in/out con reglas (limpieza, saldo, fecha), pagos y reembolsos simulados, extras, informes.
 
 ## 5. Estado por fase
 
@@ -55,10 +55,10 @@ Un usuario es global; su rol vive en `memberships` por hotel (un mismo usuario p
 | 0 | Arquitectura, entorno local | Hecho |
 | 1 | Núcleo SaaS: tenants, auth, roles, permisos, auditoría, planes | Hecho y probado |
 | 2 | Habitaciones, tarifas, disponibilidad, reservas, check-in/out, pagos simulados, extras, limpieza, informes | Hecho y probado (API) |
-| 3 | Web pública + motor de reservas (5 idiomas, USD/TZS) | **Pendiente** |
-| 4 | Panel administrativo en rumano (UI) | **Pendiente** |
+| 3 | Web pública + motor de reservas, 5 idiomas, pago simulado | Hecho y probado (navegador real). TZS pendiente |
+| 4 | Panel administrativo en rumano | Hecho y probado: panel, reservas, camere/limpieza, oaspeți, plăți, tarife, rapoarte, personal, plataforma |
 | 5 | Personal/turnos, inventario, contabilidad, mantenimiento | **Pendiente** (hoy solo hay rol `maintenance` y estado de limpieza) |
-| 6 | Copias de seguridad, observabilidad, despliegue | **Pendiente**; nada se despliega sin aprobación |
+| 6 | Copias de seguridad, observabilidad, despliegue | Kit de demo preparado ([`DEPLOY_DEMO.md`](DEPLOY_DEMO.md)), **no desplegado ni verificado en Vercel/Neon**; copias de seguridad pendientes |
 | — | Channel manager / canales externos | **No implementado**; sin integración real no se afirma ninguna |
 
 ## 6. Riesgos conocidos y decisiones abiertas

@@ -10,7 +10,7 @@ pg.types.setTypeParser(1700, (v: string) => Number(v));
 export type Tx = pg.PoolClient;
 
 export function createPool(url = config.databaseUrl) {
-  return new pg.Pool({ connectionString: url, max: 10 });
+  return new pg.Pool({ connectionString: url, max: config.dbPoolMax });
 }
 
 export let pool = createPool();
@@ -43,3 +43,11 @@ export const withTenant = <T>(hotelId: string, userId: string | undefined, fn: (
 export const withUser = <T>(userId: string, fn: (tx: Tx) => Promise<T>) => withContext({ userId }, fn);
 export const withPlatform = <T>(userId: string | undefined, fn: (tx: Tx) => Promise<T>) =>
   withContext({ platform: true, userId }, fn);
+
+/** Arranque seguro: el rol de la aplicación no puede ser superusuario ni BYPASSRLS, o RLS no protegería nada. */
+export async function assertSafeRole() {
+  const { rows } = await pool.query('SELECT current_user AS u, rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user');
+  const r = rows[0];
+  if (!r || r.rolsuper || r.rolbypassrls)
+    throw new Error(`El rol de base de datos "${r?.u}" puede saltarse Row-Level Security. Usa un rol sin SUPERUSER ni BYPASSRLS (ver docs/DEPLOY_DEMO.md).`);
+}

@@ -29,7 +29,7 @@ export async function freeRooms(tx: Tx, checkIn: string, checkOut: string, roomT
            WHERE x.room_id = r.id AND x.status IN ${ACTIVE}
              AND ($4::uuid IS NULL OR x.id <> $4)
              AND daterange(x.check_in, x.check_out, '[)') && daterange($1::date, $2::date, '[)'))
-      ORDER BY r.number`,
+      ORDER BY (r.housekeeping_status IN ('clean','inspected')) DESC, r.number`, // prefiere habitaciones ya listas
     [checkIn, checkOut, roomTypeId ?? null, excludeReservationId ?? null],
   );
   return rows as { id: string; number: string; room_type_id: string }[];

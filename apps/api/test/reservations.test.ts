@@ -129,6 +129,18 @@ describe('sin dobles reservas', () => {
   });
 });
 
+describe('asignación automática', () => {
+  it('prefiere habitaciones limpias a las sucias', async () => {
+    const rooms = (await rec.get(`/api/h/${Z}/rooms`)).body.filter((r: any) => r.room_type_name === 'Garden Room');
+    const first = rooms[0];
+    await hk.patch(`/api/h/${Z}/rooms/${first.id}/housekeeping`, { status: 'dirty' });
+    const r = await book(rec, 'Garden Room', addDays(today, 800), addDays(today, 801));
+    expect(r.status).toBe(201);
+    expect(r.body.room_id).not.toBe(first.id); // la primera por número está sucia: se elige otra
+    await hk.patch(`/api/h/${Z}/rooms/${first.id}/housekeeping`, { status: 'clean' });
+  });
+});
+
 describe('recorrido completo: reserva → pago → entrada → extras → salida → limpieza', () => {
   it('ejecuta el flujo y respeta las reglas de negocio', async () => {
     const res = (await book(rec, 'Ocean View', today, addDays(today, 2))).body;

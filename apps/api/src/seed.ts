@@ -14,10 +14,11 @@ const PLANS = [
 
 export type SeedResult = { password: string; hotels: Record<string, string>; users: Record<string, string> };
 
-export async function seedDemo(url = config.migrateUrl, password = process.env.DEMO_PASSWORD ?? crypto.randomBytes(9).toString('base64url')): Promise<SeedResult> {
+export async function seedDemo(url = config.migrateUrl, password = process.env.DEMO_PASSWORD ?? crypto.randomBytes(9).toString('base64url'), platformPassword = process.env.PLATFORM_PASSWORD ?? password): Promise<SeedResult> {
   const c = new pg.Client({ connectionString: url });
   await c.connect();
   const hash = await hashPassword(password);
+  const platformHash = platformPassword === password ? hash : await hashPassword(platformPassword);
   const out: SeedResult = { password, hotels: {}, users: {} };
   try {
     await c.query('BEGIN');
@@ -29,7 +30,7 @@ export async function seedDemo(url = config.migrateUrl, password = process.env.D
     const user = async (email: string, name: string, platformAdmin = false) => {
       const r = await c.query(
         `INSERT INTO users(email,password_hash,full_name,is_platform_admin) VALUES ($1,$2,$3,$4)
-         ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash RETURNING id`, [email, hash, name, platformAdmin]);
+         ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash RETURNING id`, [email, platformAdmin ? platformHash : hash, name, platformAdmin]);
       out.users[email] = r.rows[0].id;
       return r.rows[0].id as string;
     };
