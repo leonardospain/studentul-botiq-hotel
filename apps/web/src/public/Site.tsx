@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { api, ApiError, HOTEL_SLUG } from '../api';
 import { DICTS, errText, fill, LANGS, LANG_NAMES, LOCALES, LangCtx, useLang, type Lang } from '../i18n/public';
-import { addDays, fmtDate, go, money, moneyExact, nights, store, useAsync } from '../util';
+import { addDays, fmtDate, getPath, go, money, moneyExact, nights, store, STANDALONE, useAsync } from '../util';
 
 const S = `/api/public/${HOTEL_SLUG}`;
 const ART = [['#2f8f83', '#9fd4b0'], ['#0f4c5c', '#3fa9b5'], ['#c98a3b', '#f0d9a5']];
@@ -31,6 +31,7 @@ export function PublicSite({ path }: { path: string }) {
       </main>
       <footer className="pub-foot"><div className="wrap">
         <div className="banner">{t.footer.demo}</div>
+        {STANDALONE && <p className="muted" style={{ marginTop: 10, fontSize: '.85rem' }}>{t.footer.standalone}</p>}
         <p style={{ marginTop: 14 }}>© Zanzibar Boutique Hotel (demo) · <a href="#/admin">{t.footer.admin}</a></p>
       </div></footer>
     </LangCtx.Provider>
@@ -225,7 +226,7 @@ function BookInner({ query, today }: { query: string; today: string }) {
 function Lookup() {
   const { t, lang } = useLang();
   const loc = LOCALES[lang];
-  const qs = new URLSearchParams(location.hash.split('?')[1] ?? '');
+  const qs = new URLSearchParams(getPath().split('?')[1] ?? '');
   const [code, setCode] = useState(qs.get('code') ?? '');
   const [email, setEmail] = useState(qs.get('email') ?? '');
   const [r, setR] = useState<any>(null);

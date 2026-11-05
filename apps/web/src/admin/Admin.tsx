@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { api, ApiError } from '../api';
-import { addDays, go, nights, useAsync } from '../util';
+import { addDays, go, nights, STANDALONE, useAsync } from '../util';
+declare const __DEMO_PASSWORD__: string;
 import { errRo, ERR, EXTRA, fmtD, HK, METHOD, ROLE, ROOM_STATUS, SOURCE, STATUS, usd } from './ro';
 
 type Ctx = { hid: string; me: any; can: (p: string) => boolean; toast: (m: string, bad?: boolean) => void; h: (p: string) => string };
@@ -29,6 +30,11 @@ function Login({ onDone }: { onDone: () => void }) {
     <label>Parolă<input type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></label>
     {error && <div className="err" role="alert">{error}</div>}
     <button className="btn" disabled={busy}>{busy ? 'Se verifică…' : 'Autentificare'}</button>
+    {STANDALONE && <div className="grid" style={{ gap: 8 }}>
+      <b style={{ fontSize: '.85rem' }}>Acces rapid (demo)</b>
+      {([['owner@zanzibar.test', 'Proprietar'], ['manager@zanzibar.test', 'Manager'], ['reception@zanzibar.test', 'Recepție'], ['housekeeping@zanzibar.test', 'Cameristă'], ['accounting@zanzibar.test', 'Contabil'], ['platform@botiq.test', 'Administrator platformă']] as const).map(([em, label]) =>
+        <button type="button" className="btn ghost sm" disabled={busy} onClick={async () => { setBusy(true); setError(''); try { await api.post('/api/auth/login', { email: em, password: __DEMO_PASSWORD__ }); onDone(); } catch (err) { setError(msg(err)); } finally { setBusy(false); } }}>{label} · {em}</button>)}
+    </div>}
     <a href="#/" className="muted" style={{ textAlign: 'center' }}>← Înapoi la site</a>
   </form></div>;
 }

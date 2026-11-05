@@ -28,7 +28,7 @@ const en = {
   status: { pending: 'Pending', confirmed: 'Confirmed', checked_in: 'Checked in', checked_out: 'Checked out', cancelled: 'Cancelled', no_show: 'No-show' },
   contact: { title: 'Contact & location', text: 'Paje, Zanzibar, Tanzania. Demonstration contact details — they are not real.' },
   err: { no_availability: 'Those rooms were just taken. Please search again.', past_date: 'The check-in date cannot be in the past.', capacity_exceeded: 'That room does not fit this many guests.', invalid_range: 'Please choose valid dates (1 to 60 nights).', too_many_requests: 'Too many attempts. Please try again later.', validation: 'Please check the highlighted fields.', generic: 'Something went wrong. Please try again.' },
-  footer: { demo: 'DEMONSTRATION VERSION — fictional data and simulated payments. Not a real booking service.', admin: 'Staff access' },
+  footer: { demo: 'DEMONSTRATION VERSION — fictional data and simulated payments. Not a real booking service.', admin: 'Staff access', standalone: 'This demo runs entirely in your browser: nothing is sent or stored on a server, and it resets when you reload.' },
   night: 'night', nights: 'nights',
 };
 export type Dict = typeof en;
@@ -56,7 +56,7 @@ const ro: Dict = {
   status: { pending: 'În așteptare', confirmed: 'Confirmată', checked_in: 'Cazat', checked_out: 'Check-out efectuat', cancelled: 'Anulată', no_show: 'Neprezentare' },
   contact: { title: 'Contact și locație', text: 'Paje, Zanzibar, Tanzania. Date de contact de demonstrație — nu sunt reale.' },
   err: { no_availability: 'Camerele au fost tocmai ocupate. Te rugăm să cauți din nou.', past_date: 'Data sosirii nu poate fi în trecut.', capacity_exceeded: 'Camera nu are capacitate pentru atâția oaspeți.', invalid_range: 'Alege date valide (1 până la 60 de nopți).', too_many_requests: 'Prea multe încercări. Încearcă mai târziu.', validation: 'Verifică câmpurile completate.', generic: 'A apărut o eroare. Încearcă din nou.' },
-  footer: { demo: 'VERSIUNE DE DEMONSTRAȚIE — date fictive și plăți simulate. Nu este un serviciu real de rezervări.', admin: 'Acces personal' },
+  footer: { demo: 'VERSIUNE DE DEMONSTRAȚIE — date fictive și plăți simulate. Nu este un serviciu real de rezervări.', admin: 'Acces personal', standalone: 'Această demonstrație rulează integral în browserul tău: nu se trimite și nu se stochează nimic pe un server, iar la reîncărcare se resetează.' },
   night: 'noapte', nights: 'nopți',
 };
 
@@ -83,7 +83,7 @@ const es: Dict = {
   status: { pending: 'Pendiente', confirmed: 'Confirmada', checked_in: 'Alojado', checked_out: 'Salida registrada', cancelled: 'Cancelada', no_show: 'No presentado' },
   contact: { title: 'Contacto y ubicación', text: 'Paje, Zanzíbar, Tanzania. Datos de contacto de demostración: no son reales.' },
   err: { no_availability: 'Esas habitaciones acaban de ocuparse. Vuelve a buscar.', past_date: 'La fecha de entrada no puede ser anterior a hoy.', capacity_exceeded: 'La habitación no admite tantos huéspedes.', invalid_range: 'Elige fechas válidas (de 1 a 60 noches).', too_many_requests: 'Demasiados intentos. Inténtalo más tarde.', validation: 'Revisa los campos marcados.', generic: 'Ha ocurrido un error. Inténtalo de nuevo.' },
-  footer: { demo: 'VERSIÓN DE DEMOSTRACIÓN — datos ficticios y pagos simulados. No es un servicio real de reservas.', admin: 'Acceso personal' },
+  footer: { demo: 'VERSIÓN DE DEMOSTRACIÓN — datos ficticios y pagos simulados. No es un servicio real de reservas.', admin: 'Acceso personal', standalone: 'Esta demostración se ejecuta íntegramente en tu navegador: no se envía ni guarda nada en un servidor, y se reinicia al recargar.' },
   night: 'noche', nights: 'noches',
 };
 
@@ -110,7 +110,7 @@ const it: Dict = {
   status: { pending: 'In attesa', confirmed: 'Confermata', checked_in: 'Alloggiato', checked_out: 'Check-out effettuato', cancelled: 'Annullata', no_show: 'Mancata presentazione' },
   contact: { title: 'Contatti e posizione', text: 'Paje, Zanzibar, Tanzania. Recapiti di dimostrazione: non sono reali.' },
   err: { no_availability: 'Quelle camere sono appena state occupate. Cerca di nuovo.', past_date: 'La data di arrivo non può essere nel passato.', capacity_exceeded: 'La camera non ospita così tante persone.', invalid_range: 'Scegli date valide (da 1 a 60 notti).', too_many_requests: 'Troppi tentativi. Riprova più tardi.', validation: 'Controlla i campi evidenziati.', generic: 'Si è verificato un errore. Riprova.' },
-  footer: { demo: 'VERSIONE DIMOSTRATIVA — dati fittizi e pagamenti simulati. Non è un vero servizio di prenotazione.', admin: 'Accesso personale' },
+  footer: { demo: 'VERSIONE DIMOSTRATIVA — dati fittizi e pagamenti simulati. Non è un vero servizio di prenotazione.', admin: 'Accesso personale', standalone: 'Questa dimostrazione funziona interamente nel tuo browser: nulla viene inviato o salvato su un server e si azzera ricaricando la pagina.' },
   night: 'notte', nights: 'notti',
 };
 
@@ -137,7 +137,7 @@ const fr: Dict = {
   status: { pending: 'En attente', confirmed: 'Confirmée', checked_in: 'Installé', checked_out: 'Départ enregistré', cancelled: 'Annulée', no_show: 'Non présenté' },
   contact: { title: 'Contact et localisation', text: 'Paje, Zanzibar, Tanzanie. Coordonnées de démonstration : elles ne sont pas réelles.' },
   err: { no_availability: 'Ces chambres viennent d’être prises. Relancez la recherche.', past_date: "La date d'arrivée ne peut pas être passée.", capacity_exceeded: 'La chambre ne peut pas accueillir autant de personnes.', invalid_range: 'Choisissez des dates valides (1 à 60 nuits).', too_many_requests: 'Trop de tentatives. Réessayez plus tard.', validation: 'Vérifiez les champs signalés.', generic: 'Une erreur est survenue. Réessayez.' },
-  footer: { demo: "VERSION DE DÉMONSTRATION — données fictives et paiements simulés. Ce n'est pas un vrai service de réservation.", admin: 'Accès personnel' },
+  footer: { demo: "VERSION DE DÉMONSTRATION — données fictives et paiements simulés. Ce n'est pas un vrai service de réservation.", admin: 'Accès personnel', standalone: "Cette démonstration s'exécute entièrement dans votre navigateur : rien n'est envoyé ni enregistré sur un serveur, et elle se réinitialise au rechargement." },
   night: 'nuit', nights: 'nuits',
 };
 

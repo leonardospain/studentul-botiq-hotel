@@ -58,7 +58,8 @@ await page.waitForSelector('dl.kv >> text=Confirmată');
 ok(true, 'Consulta por código + email muestra "Confirmată"');
 
 console.log('3. Panel administrativo en rumano (recepción)');
-const adm = await mk({ locale: 'ro-RO' });
+// En la demo autónoma (STANDALONE=1) la base de datos vive en cada pestaña: se usa la MISMA pestaña, como haría una persona real.
+const adm = process.env.STANDALONE ? page : await mk({ locale: 'ro-RO' });
 await adm.goto(BASE + '/#/admin');
 await adm.fill('input[type=email]', 'reception@zanzibar.test'); await adm.fill('input[type=password]', 'mala-clave-123');
 await adm.click('button:has-text("Autentificare")');
@@ -112,7 +113,7 @@ ok((await adm.locator('.room .badge:has-text("De curățat")').count()) >= 1, 'H
 await adm.screenshot({ path: `${SHOTS}/08-admin-rooms.png`, fullPage: true });
 
 console.log('6. Informes');
-await adm.goto(BASE + '/#/admin');
+if (process.env.STANDALONE) await adm.click('.side >> text=Panou'); else await adm.goto(BASE + '/#/admin');
 await adm.waitForSelector('text=Panou de control');
 await adm.screenshot({ path: `${SHOTS}/09-admin-dashboard-after.png`, fullPage: true });
 
