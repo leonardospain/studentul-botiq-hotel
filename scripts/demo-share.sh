@@ -96,14 +96,37 @@ if [ "${SKIP_TUNNEL:-0}" != "1" ]; then
   URL="$PUB"
 
   say "8/8 Comprobando la dirección pública"
-  wait_for "que la dirección responda" 60 curl -fsS "$PUB/api/health"
-  CODE="$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Origin: $PUB" -H 'content-type: application/json' -d '{"email":"x@y.test","password":"x"}' "$PUB/api/auth/login")"
-  if [ "$CODE" = "403" ]; then
-    echo "El túnel cambia la cabecera Host: reiniciando la API con el origen permitido…"
-    start_api "$PUB"
-    CODE="$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Origin: $PUB" -H 'content-type: application/json' -d '{"email":"x@y.test","password":"x"}' "$PUB/api/auth/login")"
+  HOST="${PUB#https://}"
+  # 1) El túnel debe estar conectado con Cloudflare (esto no depende del DNS de tu Mac).
+  for _ in $(seq 1 60); do grep -q "Registered tunnel connection" "$LOG_TUN" 2>/dev/null && break; sleep 1; done
+  if ! grep -q "Registered tunnel connection" "$LOG_TUN" 2>/dev/null; then
+    echo "---- últimas líneas de cloudflared ----"; tail -25 "$LOG_TUN"; echo "---------------------------------------"
+    fail "cloudflared no logró conectar con Cloudflare. Suele deberse a un firewall, VPN o WARP que bloquea el puerto 7844. Prueba sin VPN/WARP o desde otra red (p. ej. compartiendo datos del iPhone)."
   fi
-  [ "$CODE" = "401" ] || fail "Comprobación del login a través de la dirección pública: esperaba 401 y obtuve $CODE (revisa $LOG_API)."
+  echo "Túnel conectado con Cloudflare."
+  # 2) Permitir el origen público (inofensivo aunque no hiciera falta).
+  start_api "$PUB"
+  # 3) Comprobación desde este Mac: primero con el DNS normal y, si falla, saltándose el DNS local (1.1.1.1).
+  login_code() { curl -s -m 15 -o /dev/null -w '%{http_code}' -X POST -H "Origin: $PUB" -H 'content-type: application/json' -d '{"email":"x@y.test","password":"x"}' "$@" "$PUB/api/auth/login" 2>/dev/null || true; }
+  CODE=""
+  for _ in $(seq 1 15); do CODE="$(login_code)"; [ "$CODE" = "401" ] && break; sleep 2; done
+  if [ "$CODE" != "401" ] && command -v dig >/dev/null; then
+    IP="$(dig +short @1.1.1.1 "$HOST" 2>/dev/null | grep -E '^[0-9.]+$' | head -1 || true)"
+    if [ -n "$IP" ]; then
+      CODE="$(login_code --resolve "$HOST:443:$IP")"
+      if [ "$CODE" = "401" ]; then
+        echo "AVISO: la dirección funciona, pero el DNS de ESTE Mac aún no la conoce. Ábrela desde el iPhone con datos móviles o espera 1-2 minutos."
+        echo "       Si sigue sin abrir aquí: sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder"
+      fi
+    fi
+  fi
+  if [ "$CODE" != "401" ]; then
+    echo "AVISO: no pude confirmar desde este Mac el acceso a la dirección pública (código '$CODE')."
+    echo "       El túnel está conectado; ábrela desde otro dispositivo (iPhone con datos móviles). Si no abre, copia esto y envíamelo:"
+    echo "       tail -25 $LOG_TUN   y   tail -25 $LOG_API"
+  else
+    echo "Comprobación correcta: la dirección pública responde y el login funciona."
+  fi
 else
   say "7/8 y 8/8 (omitidos) Túnel público"
 fi
