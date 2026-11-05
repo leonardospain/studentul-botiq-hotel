@@ -1,5 +1,9 @@
 import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
+import fastifyStatic from '@fastify/static';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { ZodError } from 'zod';
 import { config } from './config.js';
 import { HttpError } from './errors.js';
@@ -24,13 +28,17 @@ export async function buildApp() {
     reply.header('x-frame-options', 'DENY');
     reply.header('referrer-policy', 'no-referrer');
     reply.header('cache-control', 'no-store');
+    reply.header('content-security-policy', "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
   });
 
   // Defensa CSRF: además de SameSite=Lax, las mutaciones con cabecera Origin deben venir de un origen permitido.
   app.addHook('onRequest', async (req) => {
     if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
       const origin = req.headers.origin;
-      if (origin && !config.allowedOrigins.includes(origin)) throw new HttpError(403, 'origin_not_allowed');
+      // Mismo origen que el servidor (Origin.host == Host) o lista explícita; cualquier otro origen se rechaza.
+      let sameOrigin = false;
+      try { sameOrigin = !!origin && new URL(origin).host === req.headers.host; } catch { /* origen inválido */ }
+      if (origin && !sameOrigin && !config.allowedOrigins.includes(origin)) throw new HttpError(403, 'origin_not_allowed');
     }
     req.user = await loadSession(req.cookies[COOKIE]);
   });
@@ -58,6 +66,10 @@ export async function buildApp() {
     await h.register(reservationRoutes);
     await h.register(reportRoutes);
   }, { prefix: '/api/h/:hotelId' });
+
+  // Interfaz web compilada (apps/web/dist), mismo origen que la API.
+  const dist = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'web', 'dist');
+  if (fs.existsSync(dist)) await app.register(fastifyStatic, { root: dist, wildcard: false });
 
   return app;
 }

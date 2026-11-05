@@ -13,7 +13,7 @@ export const staffRoutes: FastifyPluginAsync = async (app) => {
   app.get('/me', async (req) => tenant(req, async (tx, hotelId) => {
     const hotel = (await tx.query(
       `SELECT h.id, h.name, h.slug, h.timezone, h.currencies, h.web_languages, h.admin_language, h.status,
-              p.code AS plan, p.max_rooms, p.max_staff
+              p.code AS plan, p.max_rooms, p.max_staff, (now() AT TIME ZONE h.timezone)::date AS today
          FROM hotels h JOIN plans p ON p.id = h.plan_id WHERE h.id = $1`, [hotelId])).rows[0];
     return { hotel, role: req.hotel!.role, permissions: ROLE_PERMISSIONS[req.hotel!.role] };
   }));

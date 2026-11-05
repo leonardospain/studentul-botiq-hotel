@@ -31,6 +31,7 @@ describe('web pública', () => {
     expect(r.status).toBe(200);
     expect(r.body.name).toBe('Zanzibar Boutique Hotel');
     expect(r.body.languages).toEqual(['ro', 'en', 'es', 'it', 'fr']);
+    expect(r.body.today).toBe(today); // fecha de hoy en la zona horaria del hotel
     expect(r.body.room_types).toHaveLength(3);
     for (const l of ['ro', 'en', 'es', 'it', 'fr']) expect(r.body.room_types[0].description_i18n[l]).toBeTruthy();
     expect(JSON.stringify(r.body)).not.toMatch(/hotel_id|"number"|owner@|password/);

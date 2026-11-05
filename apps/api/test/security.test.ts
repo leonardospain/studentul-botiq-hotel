@@ -47,6 +47,11 @@ describe('autenticación', () => {
     const c = makeClient(ctx.app);
     const r = await c.post('/api/auth/login', { email: 'x@y.test', password: 'x' }, { origin: 'https://evil.example' });
     expect(r.status).toBe(403);
+    // mismo origen (Origin.host == Host) sí se acepta
+    const same = await c.post('/api/auth/login', { email: 'x@y.test', password: 'x' }, { origin: 'http://localhost:3111', host: 'localhost:3111' });
+    expect(same.status).toBe(401); // llega al login (credenciales inválidas), no es 403
+    // mismo hostname pero distinto puerto/host: rechazado
+    expect((await c.post('/api/auth/login', { email: 'x@y.test', password: 'x' }, { origin: 'http://evil.localhost', host: 'localhost' })).status).toBe(403);
   });
 });
 

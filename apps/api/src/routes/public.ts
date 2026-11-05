@@ -4,7 +4,7 @@ import { audit } from '../audit.js';
 import { isoDate, MAX_NIGHTS, nightsBetween } from '../dates.js';
 import { withPlatform, withTenant } from '../db.js';
 import { HttpError } from '../errors.js';
-import { createReservation, freeRooms, loadReservation, priceStay } from '../pms.js';
+import { createReservation, freeRooms, hotelToday, loadReservation, priceStay } from '../pms.js';
 
 const LANGS = ['ro', 'en', 'es', 'it', 'fr'] as const;
 const slugParam = z.object({ slug: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/).max(60) });
@@ -34,9 +34,11 @@ export const publicRoutes: FastifyPluginAsync = async (app) => {
   app.get('/:slug', async (req) => {
     const { slug } = slugParam.parse(req.params);
     const h = await publicHotel(slug);
-    const room_types = await withTenant(h.id, undefined, async (tx) => (await tx.query(
-      `SELECT id, name, description_i18n, max_adults, max_children, base_rate_cents FROM room_types ORDER BY base_rate_cents`)).rows);
-    return { slug: h.slug, name: h.name, city: h.city, country: h.country, languages: h.web_languages, currency: 'USD', info: h.public_info, room_types };
+    const { room_types, today } = await withTenant(h.id, undefined, async (tx) => ({
+      room_types: (await tx.query(`SELECT id, name, description_i18n, max_adults, max_children, base_rate_cents FROM room_types ORDER BY base_rate_cents`)).rows,
+      today: await hotelToday(tx, h.id), // fecha de hoy en la zona horaria del hotel
+    }));
+    return { today, slug: h.slug, name: h.name, city: h.city, country: h.country, languages: h.web_languages, currency: 'USD', info: h.public_info, room_types };
   });
 
   app.get('/:slug/availability', async (req) => {
