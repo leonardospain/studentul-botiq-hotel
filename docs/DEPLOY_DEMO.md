@@ -40,6 +40,19 @@ Los secretos (contraseñas, cadenas de conexión) **se escriben solo en tu termi
    ⚠️ No verificado: que Vercel detecte `api/index.ts` y resuelva los imports con extensión `.js` hacia `.ts`; que la reescritura conserve la URL original.
    ⚠️ No verificado: que el pooler de Neon respete `set_config(..., true)` por transacción (la documentación de Neon indica que `SET` de sesión no funciona en el pooler; este proyecto solo usa estado local a la transacción). El paso 3 lo comprueba.
 
+#### Alternativa si la otra cuenta de Vercel no puede leer el repositorio de GitHub
+Despliega desde tu carpeta local con la CLI (no necesita enlazar GitHub). ⚠️ No verificado:
+```bash
+npx vercel login
+```
+```bash
+npx vercel link
+```
+Pon las variables de la tabla anterior en el panel de Vercel (Project → Settings → Environment Variables), no en la terminal. Después:
+```bash
+npx vercel --prod
+```
+
 ### 3. Comprobar que el aislamiento funciona en producción
 ```bash
 BASE=https://TU-PROYECTO.vercel.app DEMO_PASSWORD="…" PLATFORM_PASSWORD="…" node scripts/remote-smoke.mjs
