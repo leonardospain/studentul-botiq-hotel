@@ -7,5 +7,6 @@ export const config = {
   sessionDays: 7,
   trustProxy: process.env.TRUST_PROXY === 'true', // true detrás de Vercel/Cloudflare para ver la IP real
   dbPoolMax: Number(process.env.DB_POOL_MAX ?? 10),
+  dbDriver: (process.env.DB_DRIVER ?? 'pg') as 'pg' | 'pglite', // 'pglite' = demo efímera con PostgreSQL embebido
   isProduction: process.env.NODE_ENV === 'production',
 };

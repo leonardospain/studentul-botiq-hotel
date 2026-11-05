@@ -1,7 +1,8 @@
 import { buildApp } from './app.js';
 import { config } from './config.js';
-import { assertSafeRole } from './db.js';
+import { assertSafeRole, initDb } from './db.js';
 
+await initDb();
 await assertSafeRole();
 const app = await buildApp();
 await app.listen({ port: config.port, host: process.env.HOST ?? '127.0.0.1' }); // por defecto solo local

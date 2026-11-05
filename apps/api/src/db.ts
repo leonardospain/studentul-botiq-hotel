@@ -7,14 +7,26 @@ pg.types.setTypeParser(1082, (v: string) => v);
 pg.types.setTypeParser(20, (v: string) => Number(v));
 pg.types.setTypeParser(1700, (v: string) => Number(v));
 
-export type Tx = pg.PoolClient;
+export interface Tx { query(text: string, params?: any[]): Promise<{ rows: any[]; rowCount: number | null }> }
+export interface DbClient extends Tx { release(): void }
+export interface DbPool extends Tx { connect(): Promise<DbClient>; end(): Promise<void> }
 
-export function createPool(url = config.databaseUrl) {
-  return new pg.Pool({ connectionString: url, max: config.dbPoolMax });
+export function createPool(url = config.databaseUrl): DbPool {
+  return new pg.Pool({ connectionString: url, max: config.dbPoolMax }) as unknown as DbPool;
 }
 
-export let pool = createPool();
-export function setPool(p: pg.Pool) { pool = p; }
+export let pool: DbPool = createPool();
+export function setPool(p: DbPool) { pool = p; }
+
+/** Inicializa el motor de datos. En modo pglite crea una PostgreSQL embebida, migra, siembra datos FICTICIOS y activa el rol sin privilegios. */
+let initPromise: Promise<void> | undefined;
+export function initDb(): Promise<void> {
+  if (config.dbDriver !== 'pglite') return Promise.resolve();
+  return (initPromise ??= (async () => {
+    const { createPglite } = await import('./pglite.js');
+    setPool(await createPglite());
+  })());
+}
 
 type Ctx = { hotelId?: string; userId?: string; platform?: boolean };
 

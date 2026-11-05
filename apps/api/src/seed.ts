@@ -17,6 +17,11 @@ export type SeedResult = { password: string; hotels: Record<string, string>; use
 export async function seedDemo(url = config.migrateUrl, password = process.env.DEMO_PASSWORD ?? crypto.randomBytes(9).toString('base64url'), platformPassword = process.env.PLATFORM_PASSWORD ?? password): Promise<SeedResult> {
   const c = new pg.Client({ connectionString: url });
   await c.connect();
+  try { return await seedDemoWith(c, password, platformPassword); } finally { await c.end(); }
+}
+
+/** Carga los datos ficticios con cualquier cliente SQL (pg o PGlite). */
+export async function seedDemoWith(c: { query: (text: string, params?: any[]) => Promise<any> }, password: string, platformPassword: string = password): Promise<SeedResult> {
   const hash = await hashPassword(password);
   const platformHash = platformPassword === password ? hash : await hashPassword(platformPassword);
   const out: SeedResult = { password, hotels: {}, users: {} };
@@ -108,8 +113,6 @@ export async function seedDemo(url = config.migrateUrl, password = process.env.D
   } catch (e) {
     await c.query('ROLLBACK');
     throw e;
-  } finally {
-    await c.end();
   }
   return out;
 }

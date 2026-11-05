@@ -6,14 +6,22 @@ import { config } from './config.js';
 
 const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 
+type SqlClient = { query: (text: string, params?: any[]) => Promise<any> };
+
 export async function migrate(url = config.migrateUrl): Promise<string[]> {
   const client = new pg.Client({ connectionString: url });
   await client.connect();
+  try { return await migrateWith(client); } finally { await client.end(); }
+}
+
+/** Aplica las migraciones con cualquier cliente SQL (pg o PGlite). */
+export async function migrateWith(client: SqlClient): Promise<string[]> {
   const applied: string[] = [];
-  try {
+  {
+    try {
     await client.query('SELECT pg_advisory_lock(727274)');
     await client.query('CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())');
-    const done = new Set((await client.query('SELECT name FROM schema_migrations')).rows.map((r) => r.name));
+    const done = new Set((await client.query('SELECT name FROM schema_migrations')).rows.map((r: { name: string }) => r.name));
     for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.sql')).sort()) {
       if (done.has(file)) continue;
       await client.query('BEGIN');
@@ -27,9 +35,9 @@ export async function migrate(url = config.migrateUrl): Promise<string[]> {
         throw new Error(`Migración ${file} falló: ${(e as Error).message}`);
       }
     }
-  } finally {
-    await client.query('SELECT pg_advisory_unlock(727274)').catch(() => {});
-    await client.end();
+    } finally {
+      await client.query('SELECT pg_advisory_unlock(727274)').catch(() => {});
+    }
   }
   return applied;
 }
