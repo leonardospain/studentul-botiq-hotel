@@ -1,0 +1,45 @@
+import pg from 'pg';
+import { config } from './config.js';
+
+// Las fechas (date) se devuelven como 'YYYY-MM-DD' sin conversión de zona horaria.
+pg.types.setTypeParser(1082, (v: string) => v);
+// bigint (count, sum) y numeric -> number: los importes caben de sobra en 2^53.
+pg.types.setTypeParser(20, (v: string) => Number(v));
+pg.types.setTypeParser(1700, (v: string) => Number(v));
+
+export type Tx = pg.PoolClient;
+
+export function createPool(url = config.databaseUrl) {
+  return new pg.Pool({ connectionString: url, max: 10 });
+}
+
+export let pool = createPool();
+export function setPool(p: pg.Pool) { pool = p; }
+
+type Ctx = { hotelId?: string; userId?: string; platform?: boolean };
+
+/** Ejecuta fn en una transacción con el contexto RLS indicado. Sin contexto => sin acceso a datos de tenant. */
+export async function withContext<T>(ctx: Ctx, fn: (tx: Tx) => Promise<T>): Promise<T> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      `SELECT set_config('app.hotel_id', $1, true), set_config('app.user_id', $2, true), set_config('app.platform', $3, true)`,
+      [ctx.hotelId ?? '', ctx.userId ?? '', ctx.platform ? 'on' : ''],
+    );
+    const out = await fn(client);
+    await client.query('COMMIT');
+    return out;
+  } catch (e) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+export const withTenant = <T>(hotelId: string, userId: string | undefined, fn: (tx: Tx) => Promise<T>) =>
+  withContext({ hotelId, userId }, fn);
+export const withUser = <T>(userId: string, fn: (tx: Tx) => Promise<T>) => withContext({ userId }, fn);
+export const withPlatform = <T>(userId: string | undefined, fn: (tx: Tx) => Promise<T>) =>
+  withContext({ platform: true, userId }, fn);

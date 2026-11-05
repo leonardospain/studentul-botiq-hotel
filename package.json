@@ -1,0 +1,14 @@
+{
+  "name": "studentul-botiq-hotel",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "db:setup": "bash scripts/db-setup.sh",
+    "migrate": "npm run migrate -w apps/api",
+    "seed": "npm run seed -w apps/api",
+    "dev": "npm run dev -w apps/api",
+    "test": "npm test -w apps/api",
+    "typecheck": "npm run typecheck -w apps/api"
+  }
+}
