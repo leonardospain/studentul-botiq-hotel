@@ -55,4 +55,16 @@ export const reportRoutes: FastifyPluginAsync = async (app) => {
       return { from: q.from, to: q.to, currency: 'USD', simulated_payments: true, collected_cents: collected, lodging_cents: lodging, extras_cents: extras, booked_cents: lodging + extras };
     });
   });
+
+  // Libro de pagos (simulados) con la reserva y el huésped.
+  app.get('/payments', { preHandler: guard('payments:read') }, async (req) => {
+    const q = z.object({ from: isoDate.optional(), to: isoDate.optional() }).parse(req.query);
+    return tenant(req, async (tx, hotelId) => (await tx.query(
+      `SELECT p.id, p.kind, p.amount_cents, p.method, p.simulated, p.reference, p.created_at, r.id AS reservation_id, r.code, g.full_name AS guest_name
+         FROM payments p JOIN reservations r ON r.id = p.reservation_id JOIN guests g ON g.id = r.guest_id, hotels h
+        WHERE h.id = $3
+          AND ($1::date IS NULL OR (p.created_at AT TIME ZONE h.timezone)::date >= $1)
+          AND ($2::date IS NULL OR (p.created_at AT TIME ZONE h.timezone)::date <= $2)
+        ORDER BY p.created_at DESC LIMIT 300`, [q.from ?? null, q.to ?? null, hotelId])).rows);
+  });
 };

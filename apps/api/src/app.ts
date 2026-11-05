@@ -11,6 +11,7 @@ import { staffRoutes } from './routes/staff.js';
 import { roomRoutes } from './routes/rooms.js';
 import { reservationRoutes } from './routes/reservations.js';
 import { reportRoutes } from './routes/reports.js';
+import { publicRoutes } from './routes/public.js';
 
 export async function buildApp() {
   const app = Fastify({ logger: false, bodyLimit: 256 * 1024, trustProxy: false });
@@ -49,6 +50,7 @@ export async function buildApp() {
   app.get('/api/health', async () => ({ ok: true }));
   await app.register(authRoutes, { prefix: '/api/auth' });
   await app.register(platformRoutes, { prefix: '/api/platform' });
+  await app.register(publicRoutes, { prefix: '/api/public' });
   await app.register(async (h) => {
     h.addHook('preHandler', resolveHotel);
     await h.register(staffRoutes);
