@@ -1,4 +1,11 @@
-# Publicar la demo (Neon + Vercel Hobby)
+# Publicar la demo (Vercel)
+
+## Opción rápida: demo efímera SIN base de datos externa
+`vercel.json` define dos servicios (`api`: Fastify en `apps/api`; `web`: Vite en `apps/web`) bajo un solo dominio: `/api/*` va a la API y el resto a la web. Con `DB_DRIVER=pglite` la API arranca su propia PostgreSQL embebida (PGlite) con datos **ficticios**. Variables de entorno: `DB_DRIVER=pglite`, `DEMO_PASSWORD` (mín. 12), `PLATFORM_PASSWORD`, `SESSION_COOKIE_SECURE=true`, `TRUST_PROXY=true`, `NODE_ENV=production`.
+⚠️ Los datos viven en memoria y se pierden cuando Vercel recicla la instancia; con varias instancias cada una tiene su copia. Solo para enseñar el producto; **no** para datos reales.
+⚠️ La configuración de servicios y el empaquetado de PGlite no están verificados en Vercel.
+
+## Opción con base de datos real (Neon + Vercel)
 
 > **Estado: preparado, NO desplegado y NO verificado en Vercel ni en Neon.** Lo verificado hasta ahora es solo local (48 tests de API, 25 comprobaciones de navegador, humo contra servidor local). Los puntos sin verificar están marcados con ⚠️. Si algo falla, pega el log y se corrige.
 
@@ -37,7 +44,7 @@ Los secretos (contraseñas, cadenas de conexión) **se escriben solo en tu termi
    | `DB_POOL_MAX` | `3` |
    | `NODE_ENV` | `production` |
 3. Despliega.
-   ⚠️ No verificado: que Vercel detecte `api/index.ts` y resuelva los imports con extensión `.js` hacia `.ts`; que la reescritura conserve la URL original.
+   ⚠️ No verificado: que Vercel detecte el servicio `api` (`apps/api/src/server.ts`) y que el prefijo `/api` llegue intacto (la API tolera ambos casos).
    ⚠️ No verificado: que el pooler de Neon respete `set_config(..., true)` por transacción (la documentación de Neon indica que `SET` de sesión no funciona en el pooler; este proyecto solo usa estado local a la transacción). El paso 3 lo comprueba.
 
 #### Alternativa si la otra cuenta de Vercel no puede leer el repositorio de GitHub

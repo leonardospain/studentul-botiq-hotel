@@ -1,10 +1,8 @@
-import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { config } from './config.js';
-
-const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
+import { MIGRATIONS } from './migrations.generated.js';
 
 type SqlClient = { query: (text: string, params?: any[]) => Promise<any> };
 
@@ -22,11 +20,11 @@ export async function migrateWith(client: SqlClient): Promise<string[]> {
     await client.query('SELECT pg_advisory_lock(727274)');
     await client.query('CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())');
     const done = new Set((await client.query('SELECT name FROM schema_migrations')).rows.map((r: { name: string }) => r.name));
-    for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.sql')).sort()) {
+    for (const { name: file, sql } of MIGRATIONS) {
       if (done.has(file)) continue;
       await client.query('BEGIN');
       try {
-        await client.query(fs.readFileSync(path.join(dir, file), 'utf8'));
+        await client.query(sql);
         await client.query('INSERT INTO schema_migrations(name) VALUES ($1)', [file]);
         await client.query('COMMIT');
         applied.push(file);

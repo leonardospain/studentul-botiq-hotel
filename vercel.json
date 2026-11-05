@@ -1,19 +1,28 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm install",
-  "buildCommand": "npm run build -w apps/web",
-  "outputDirectory": "apps/web/dist",
+  "services": {
+    "api": {
+      "root": "apps/api",
+      "framework": "fastify",
+      "entrypoint": "src/server.ts"
+    },
+    "web": {
+      "root": "apps/web",
+      "framework": "vite"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api"
+      "destination": {
+        "service": "api"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "web"
+      }
     }
-  ],
-  "functions": {
-    "api/index.ts": {
-      "maxDuration": 30,
-      "memory": 1024,
-      "includeFiles": "{apps/api/migrations/**,node_modules/@electric-sql/pglite/dist/**}"
-    }
-  }
+  ]
 }

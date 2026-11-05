@@ -18,7 +18,11 @@ import { reportRoutes } from './routes/reports.js';
 import { publicRoutes } from './routes/public.js';
 
 export async function buildApp() {
-  const app = Fastify({ logger: false, bodyLimit: 256 * 1024, trustProxy: config.trustProxy });
+  const app = Fastify({
+    logger: false, bodyLimit: 256 * 1024, trustProxy: config.trustProxy,
+    // En Vercel el servicio solo recibe /api/*: si el prefijo llegara recortado, se restituye.
+    ...(config.onVercel ? { rewriteUrl: (req: { url?: string }) => { const u = req.url ?? '/'; return u === '/api' || u.startsWith('/api/') || u.startsWith('/api?') ? u : `/api${u.startsWith('/') ? u : `/${u}`}`; } } : {}),
+  });
   await app.register(cookie);
   app.decorateRequest('user', null);
   app.decorateRequest('hotel', null);
